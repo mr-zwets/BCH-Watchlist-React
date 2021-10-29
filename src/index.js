@@ -31,7 +31,7 @@ class App extends React.Component {
       <div>
         <h1>BCH Watchlist</h1>
         <div>Enter Bitcoin Cash address to add to watchlist:</div>
-        <div class="container">
+        <div className="container">
           <input
             type="text"
             id="inputAddr"
@@ -45,13 +45,9 @@ class App extends React.Component {
         </div>
         <section style={{ display: "flex" }}>
           {this.state.watchlist.map((addr) => (
-            <div key={addr} style={{ width: "15em" }}>
-              <img
-                src="https://cdn.mainnet.cash/wait.svg"
-                style={{ width: "inherit" }}
-                id="deposit"
-              />
-              <div style={{ overflow: "auto" }}>{addr}</div>
+            <div key={addr} className="item">
+              <img src="https://cdn.mainnet.cash/wait.svg" id="QR" />
+              <div id="addr">{addr}</div>
             </div>
           ))}
         </section>
