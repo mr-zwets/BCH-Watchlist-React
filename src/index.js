@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import BCHJS from "@psf/bch-js";
+import QRCode from "qrcode.react";
 let bchjs = new BCHJS();
 
 class App extends React.Component {
@@ -105,7 +106,13 @@ class App extends React.Component {
                 <div id="x" onClick={() => this.removeFromWatchlist(index)}>
                   X
                 </div>
-                <img alt="" src="https://cdn.mainnet.cash/wait.svg" id="QR" />
+                <QRCode
+                  id="QR"
+                  value={address}
+                  size={240}
+                  renderAs="svg"
+                  includeMargin={true}
+                />
                 <div id="addr">{address}</div>
                 <br />
                 <div>
@@ -123,7 +130,7 @@ class App extends React.Component {
             href="https://github.com/mr-zwets/BCH-Watchlist-React"
             target="_blanc"
           >
-            <img alt="" class="githublogo" src="./github.png" />
+            <img alt="" className="githublogo" src="./github.png" />
           </a>
           <p>
             built with{" "}
