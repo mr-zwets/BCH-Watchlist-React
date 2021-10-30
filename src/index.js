@@ -16,10 +16,15 @@ class App extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.fetchBalance = this.fetchBalance.bind(this);
     this.removeFromWatchlist = this.removeFromWatchlist.bind(this);
+    this.readLocalStorage = this.readLocalStorage.bind(this);
+    this.writeToLocalStorage = this.writeToLocalStorage.bind(this);
   }
 
   componentDidMount = async () => {
     try {
+      // Read local storage on initialization
+      this.readLocalStorage()
+      // Fetch BCH price on initialization
       const BCHprice = await bchjs.Price.getBchUsd();
       this.setState({ BCHprice });
     } catch (err) {
@@ -35,31 +40,39 @@ class App extends React.Component {
     let watchlist = this.state.watchlist;
     watchlist[index].name = e.target.value;
     this.setState({ watchlist });
+    this.writeToLocalStorage()
   };
 
   addToWatchlist = async () => {
     const newAddress = this.state.inputAddr;
-    const addrObj = { address: newAddress };
+    const addrObj = { address: newAddress, name: "" };
+    // Check if address is already on the watchlist 
     if (this.state.watchlist.includes(newAddress)) {
       alert("Already added this address to the watchlist!");
       return;
     }
+    // Check if input is a valid BCH address
     try {
       bchjs.Address.isMainnetAddress(newAddress);
     } catch {
       alert("not a valid BCH address");
       return;
     }
+    // Balance denominated in BCH
     const balance = await this.fetchBalance(newAddress);
     addrObj.balance = balance;
+    // Clear input, add address object to the state
     this.setState({
       inputAddr: "",
       watchlist: [...this.state.watchlist, addrObj],
     });
+    // Write the watchlist to local storage
+    this.writeToLocalStorage()
   };
 
   fetchBalance = async (newAddress) => {
     try {
+      // Fetch the BCH balance in satoshis and convert it to BCH denomination
       const response = await bchjs.Electrumx.balance(newAddress);
       const BCHbalance = response.balance.confirmed / 100000000;
       return BCHbalance;
@@ -72,7 +85,26 @@ class App extends React.Component {
     let watchlist = this.state.watchlist;
     watchlist.splice(index, 1);
     this.setState({ watchlist });
+    // Write the watchlist to local storage
+    this.writeToLocalStorage()
   };
+
+  writeToLocalStorage = () => {
+    // Clear local storage and write the watchlist array to it as a string
+    localStorage.clear();
+    localStorage.setItem("watchlist", JSON.stringify(this.state.watchlist));
+  }
+
+  readLocalStorage = () => {
+    // Convert the string back to the watchlist object
+    let watchlist = JSON.parse(localStorage.getItem("watchlist"));
+    // Refresh the balances of all addresses
+    watchlist.forEach( async (addrObj) => {
+      addrObj.balance = await this.fetchBalance(addrObj.address);
+    })
+    // Write the watchlist to state if it exists
+    if(watchlist !== "null") this.setState({ watchlist });
+  }
 
   render() {
     return (
