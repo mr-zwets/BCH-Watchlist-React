@@ -10,20 +10,51 @@ class App extends React.Component {
     this.state = {
       input: "",
       watchlist: [],
+      balances: [],
+      BCHprice: 0,
     };
     this.addToWatchlist = this.addToWatchlist.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.fetchBalance = this.fetchBalance.bind(this);
   }
+
+  componentDidMount = async () => {
+    try {
+      const BCHprice = await bchjs.Price.getBchUsd();
+      this.setState({ BCHprice });
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   handleChange = (e) => {
     this.setState({ input: e.target.value });
   };
 
-  addToWatchlist = () => {
+  addToWatchlist = async () => {
+    const newAddress = this.state.input;
+    try {
+      bchjs.Address.isMainnetAddress(newAddress);
+    } catch {
+      alert("not a valid BCH address");
+      return;
+    }
+    const balance = await this.fetchBalance(newAddress);
     this.setState({
       input: "",
-      watchlist: [...this.state.watchlist, this.state.input],
+      watchlist: [...this.state.watchlist, newAddress],
+      balances: [...this.state.balances, balance],
     });
+  };
+
+  fetchBalance = async (newAddress) => {
+    try {
+      const response = await bchjs.Electrumx.balance(newAddress);
+      const BCHbalance = response.balance.confirmed / 100000000;
+      return BCHbalance;
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   render() {
@@ -44,10 +75,17 @@ class App extends React.Component {
           </button>
         </div>
         <section style={{ display: "flex" }}>
-          {this.state.watchlist.map((addr) => (
+          {this.state.watchlist.map((addr, index) => (
             <div key={addr} className="item">
-              <img src="https://cdn.mainnet.cash/wait.svg" id="QR" />
+              <img alt="" src="https://cdn.mainnet.cash/wait.svg" id="QR" />
               <div id="addr">{addr}</div>
+              <br />
+              <div>
+                {" "}
+                confirmed balance: {this.state.balances[index]} BCH (
+                {(this.state.balances[index] * this.state.BCHprice).toFixed(2)}
+                $)
+              </div>
             </div>
           ))}
         </section>
