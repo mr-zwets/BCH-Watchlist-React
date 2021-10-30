@@ -74,7 +74,8 @@ class App extends React.Component {
     try {
       // Fetch the BCH balance in satoshis and convert it to BCH denomination
       const response = await bchjs.Electrumx.balance(newAddress);
-      const BCHbalance = response.balance.confirmed / 100000000;
+      const totalBalance = response.balance.confirmed + response.balance.unconfirmed
+      const BCHbalance = totalBalance / 100000000;
       return BCHbalance;
     } catch (error) {
       console.error(error);
@@ -118,6 +119,9 @@ class App extends React.Component {
               id="inputAddr"
               value={this.state.inputAddr}
               onChange={(e) => this.handleChange(e)}
+              onKeyPress= {(event) => {
+                if (event.key === "Enter") this.addToWatchlist();
+              }}
               placeholder="BCH address"
             />
             <button id="myBtn" onClick={this.addToWatchlist}>
@@ -149,7 +153,7 @@ class App extends React.Component {
                 <br />
                 <div>
                   {" "}
-                  confirmed balance: {balance} BCH (
+                  balance: {balance} BCH (
                   {(balance * this.state.BCHprice).toFixed(2)}
                   $)
                 </div>
