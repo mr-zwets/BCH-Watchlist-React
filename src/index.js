@@ -19,15 +19,15 @@ function App() {
       }
     };
 
-    const readLocalStorage = () => {
+    const readLocalStorage = async () => {
       // Convert the string back to the watchlist object
       const newWatchlist = JSON.parse(localStorage.getItem("watchlist"));
       // If the local storage is not null
       if (newWatchlist !== null) {
         // Refresh the balances of all addresses
-        newWatchlist.forEach(async (addrObj) => {
+        for (const addrObj of newWatchlist) {
           addrObj.balance = await fetchBalance(addrObj.address);
-        });
+        }
         // Write the watchlist to state, dot notation for rerender
         setWatchlist([...newWatchlist]);
       }
